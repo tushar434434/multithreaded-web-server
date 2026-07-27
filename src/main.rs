@@ -46,3 +46,13 @@ fn handle_connection(mut stream: TcpStream){
         .collect();
         println!("Request: {http_request:#?}");
 }
+
+
+//Looking More Closely at an HTTP Request====
+/*HTTP is a text-based protocol, and a request takes this format:
+
+
+Method Request-URI HTTP-Version CRLF//first line indicate the method get or post then /, which indicate the uniform resource identifier
+headers CRLF
+message-body*/
+//CRLF stands for carriage return and line feed, which are terms from the typewriter days!) The CRLF sequence can also be written as \r\n, where \r is a carriage return and \n is a line feed. The CRLF sequence separates the request line from the rest of the request data.
