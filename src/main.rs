@@ -37,7 +37,7 @@ fn main(){
        handle_connection(stream);
     }
 }
-
+/*
 fn handle_connection(mut stream: TcpStream){
     let buf_reader =BufReader::new(&stream);//create a new BufReader instance that wraps a reference to the stream
     //The BufReader adds buffering by managing calls to the std::io::Read trait methods for us.
@@ -46,15 +46,41 @@ fn handle_connection(mut stream: TcpStream){
         .take_while(|line| !line.is_empty())//BufReader implements the std::io::BufRead trait, which provides the lines method. The lines method returns an iterator of Result<String, std::io::Error> by splitting the stream of data whenever it sees a newline byte. 
         .collect();
      //   println!("Request: {http_request:#?}");
-     // let response = "HTTP/1.1 200 OK\r\n\r\n";//succes message data 
-      let status_line = "HTTP/1.1 200 OK";
+     // let response = "HTTP/1.1 200 OK\r\n\r\n";//succes message data  
+     let status_line = "HTTP/1.1 200 OK";
       let contents = fs::read_to_string("hello.html").unwrap();
       let length = contents.len();
       let response =
         format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
 
       stream.write_all(response.as_bytes()).unwrap();//convert the string data to bytes. The write_all method on stream takes a &[u8] and sends those bytes directly down the connection. the write_all could fail thats why we wrapped it
-}
+}*/
+// --snip--
+
+fn handle_connection(mut stream: TcpStream) {
+    let buf_reader = BufReader::new(&stream);
+    let request_line = buf_reader.lines().next().unwrap().unwrap();
+
+    if request_line == "GET / HTTP/1.1" {
+        let status_line = "HTTP/1.1 200 OK";
+        let contents = fs::read_to_string("hello.html").unwrap();
+        let length = contents.len();
+        let response = format!(
+            "{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}"
+        );
+        stream.write_all(response.as_bytes()).unwrap();
+    } else {
+        let status_line = "HTTP/1.1 404 NOT FOUND";
+        let contents = fs::read_to_string("404.html").unwrap();
+        let length = contents.len();
+        let response = format!(
+            "{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}"
+        );
+        stream.write_all(response.as_bytes()).unwrap();
+    }
+    }
+
+
 
 
 //Looking More Closely at an HTTP Request====
@@ -74,5 +100,7 @@ headers CRLF
 message-body*/
 
 //Returning real html =====
+//Validating the Request and Selectively Responding
+
 
 
