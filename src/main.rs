@@ -44,7 +44,9 @@ fn handle_connection(mut stream: TcpStream){
         .map(|result| result.unwrap())
         .take_while(|line| !line.is_empty())//BufReader implements the std::io::BufRead trait, which provides the lines method. The lines method returns an iterator of Result<String, std::io::Error> by splitting the stream of data whenever it sees a newline byte. 
         .collect();
-        println!("Request: {http_request:#?}");
+     //   println!("Request: {http_request:#?}");
+      let response = "HTTP/1.1 200 OK\r\n\r\n";//succes message data 
+    stream.write_all(response.as_bytes()).unwrap();//convert the string data to bytes. The write_all method on stream takes a &[u8] and sends those bytes directly down the connection. the write_all could fail thats why we wrapped it
 }
 
 
@@ -56,3 +58,10 @@ Method Request-URI HTTP-Version CRLF//first line indicate the method get or post
 headers CRLF
 message-body*/
 //CRLF stands for carriage return and line feed, which are terms from the typewriter days!) The CRLF sequence can also be written as \r\n, where \r is a carriage return and \n is a line feed. The CRLF sequence separates the request line from the rest of the request data.
+
+
+//Writing a resposne====
+/*response format =>
+HTTP-Version Status-Code Reason-Phrase CRLF//The first line is a status line that contains the HTTP version used in the response, a numeric status code that summarizes the result of the request, and a reason phrase that provides a text description of the status code
+headers CRLF
+message-body*/
