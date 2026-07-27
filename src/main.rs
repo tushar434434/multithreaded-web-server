@@ -25,6 +25,7 @@ fn main(){
 
 // reading the request ===
 use std::{
+    fs,
     io::{BufReader,prelude::*},// to get access to traits and types that let us read from and write to the stream.
     net::{TcpListener,TcpStream},
 };
@@ -45,8 +46,14 @@ fn handle_connection(mut stream: TcpStream){
         .take_while(|line| !line.is_empty())//BufReader implements the std::io::BufRead trait, which provides the lines method. The lines method returns an iterator of Result<String, std::io::Error> by splitting the stream of data whenever it sees a newline byte. 
         .collect();
      //   println!("Request: {http_request:#?}");
-      let response = "HTTP/1.1 200 OK\r\n\r\n";//succes message data 
-    stream.write_all(response.as_bytes()).unwrap();//convert the string data to bytes. The write_all method on stream takes a &[u8] and sends those bytes directly down the connection. the write_all could fail thats why we wrapped it
+     // let response = "HTTP/1.1 200 OK\r\n\r\n";//succes message data 
+      let status_line = "HTTP/1.1 200 OK";
+      let contents = fs::read_to_string("hello.html").unwrap();
+      let length = contents.len();
+      let response =
+        format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
+
+      stream.write_all(response.as_bytes()).unwrap();//convert the string data to bytes. The write_all method on stream takes a &[u8] and sends those bytes directly down the connection. the write_all could fail thats why we wrapped it
 }
 
 
@@ -65,3 +72,7 @@ message-body*/
 HTTP-Version Status-Code Reason-Phrase CRLF//The first line is a status line that contains the HTTP version used in the response, a numeric status code that summarizes the result of the request, and a reason phrase that provides a text description of the status code
 headers CRLF
 message-body*/
+
+//Returning real html =====
+
+
