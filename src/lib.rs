@@ -12,6 +12,7 @@ pub struct ThreadPool{
     sender: mpsc::Sender<Job>,
 }
 struct Job;
+type Job =Box<dyn FnOnce() +Send + 'static';
 impl ThreadPool {
     /// Create a new ThreadPool.
     ///
@@ -35,23 +36,29 @@ impl ThreadPool {
     }
     
    
-     pub fn execute<F>(&self, f: F)
+       pub fn execute<F>(&self, f: F)
     where
         F: FnOnce() + Send + 'static,
     {
+        let job = Box::new(f);
+
+        self.sender.send(job).unwrap();
     }
 }
+
 struct Worker {
     id: usize,
     thread: thread::JoinHandle<()>,
 }
 
 impl Worker {
-     fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Job>>>) -> Worker -> Worker {
-        let thread = thread::spawn(|| {
-            receiver;
+    fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Job>>>) -> Worker {
+        let thread = thread::spawn(move || {
+            while let Ok(job) = receiver.lock().unwrap().recv() {
+                println!("Worker {id} got a job; executing.");
+                job();
+            }
         });
-
         Worker { id, thread }
     }
 }
@@ -62,3 +69,7 @@ Each Worker will hold on to the receiver.
 We’ll create a new Job struct that will hold the closures we want to send down the channel.
 The execute method will send the job it wants to execute through the sender.
 In its thread, the Worker will loop over its receiver and execute the closures of any jobs it receives.*/
+
+
+//Implementing the execute Method========
+
