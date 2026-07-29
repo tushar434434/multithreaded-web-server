@@ -11,8 +11,8 @@ pub struct ThreadPool{
     workers: Vec<Worker>,
     sender: mpsc::Sender<Job>,
 }
-struct Job;
-type Job =Box<dyn FnOnce() +Send + 'static';
+//struct Job;
+type Job =Box<dyn FnOnce() +Send + 'static>;
 impl ThreadPool {
     /// Create a new ThreadPool.
     ///
@@ -72,4 +72,28 @@ In its thread, the Worker will loop over its receiver and execute the closures o
 
 
 //Implementing the execute Method========
+
+//Graceful shutdown and cleanup ====== 
+//Implementing the Drop Trait on ThreadPool
+/*
+impl Drop for ThreadPool {
+    fn drop(&mut self) {
+        for worker in &mut self.workers {
+            println!("Shutting down worker {}", worker.id);
+            worker.thread.join().unwrap();
+        }
+    }
+}*///error prone
+
+impl Drop for ThreadPool {
+    fn drop(&mut self) {
+        for worker in self.workers.drain(..) {//vec::drain Passing the .. range syntax will remove every value from the vector.
+            println!("Shutting down worker {}", worker.id);
+            worker.thread.join().unwrap();
+        }
+    }
+}
+
+
+
 
