@@ -31,12 +31,15 @@ use std::{
     thread,
     time::Duration,
 };
+use multithreaded_web_server::ThreadPool;
+
 
 fn main(){
     let listner = TcpListener::bind("127.0.0.1:7878").unwrap();
     for stream in listner.incoming(){
         let stream = stream.unwrap();
-       handle_connection(stream);
+        thread::spawn(||{
+       handle_connection(stream); });
     }
 }
 /*
@@ -133,3 +136,7 @@ message-body*/
 //From a Single-Threaded to a Multithreaded Server========
 
 //simulating a slow request=======
+
+
+//improving throughtput with a thread pool
+//spawning a thread for each request     
