@@ -1,8 +1,17 @@
-use std::thread;
-
-pub struct ThreadPool {
+//use std::thread;
+//use std::{sync::mpsc, thread};
+use std::{
+    sync::{Arc, Mutex, mpsc},
+    thread,
+};
+/*pub struct ThreadPool {
     threads: Vec<thread::JoinHandle<()>>,
+}*/
+pub struct ThreadPool{
+    workers: Vec<Worker>,
+    sender: mpsc::Sender<Job>,
 }
+struct Job;
 impl ThreadPool {
     /// Create a new ThreadPool.
     ///
@@ -13,18 +22,19 @@ impl ThreadPool {
     /// The `new` function will panic if the size is zero.
     pub fn new(size: usize) -> ThreadPool {
         assert!(size > 0);
+        let (sender, receiver) = mpsc::channel();
+         let receiver = Arc::new(Mutex::new(receiver));
          let mut workers = Vec::with_capacity(size);
 
         for id in 0..size {
-            workers.push(Worker::new(id));
+          // workers.push(Worker::new(id, receiver));
+            workers.push(Worker::new(id, Arc::clone(&receiver)));
         }
 
-        ThreadPool { workers }
+        ThreadPool { workers,sender }
     }
     
-    pub fn new(size: usize) -> ThreadPool {
-        ThreadPool
-    }
+   
      pub fn execute<F>(&self, f: F)
     where
         F: FnOnce() + Send + 'static,
@@ -37,11 +47,18 @@ struct Worker {
 }
 
 impl Worker {
-    fn new(id: usize) -> Worker {
-        let thread = thread::spawn(|| {});
+     fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Job>>>) -> Worker -> Worker {
+        let thread = thread::spawn(|| {
+            receiver;
+        });
 
         Worker { id, thread }
     }
 }
+// Sending Requests to Threads via Channels=======
 
-// Sending Requests to Threads via Channels
+/*The ThreadPool will create a channel and hold on to the sender.
+Each Worker will hold on to the receiver.
+We’ll create a new Job struct that will hold the closures we want to send down the channel.
+The execute method will send the job it wants to execute through the sender.
+In its thread, the Worker will loop over its receiver and execute the closures of any jobs it receives.*/
