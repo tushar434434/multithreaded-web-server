@@ -33,15 +33,18 @@ use std::{
 };
 use multithreaded_web_server::ThreadPool;
 
-
-fn main(){
-    let listner = TcpListener::bind("127.0.0.1:7878").unwrap();
-    for stream in listner.incoming(){
+fn main() {
+    let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
+    let pool = ThreadPool::new(4);
+    for stream in listener.incoming().take(2) {
         let stream = stream.unwrap();
-        thread::spawn(||{
-       handle_connection(stream); });
+        pool.execute(|| {
+            handle_connection(stream);
+        });
     }
+    println!("Shutting down.");
 }
+
 /*
 fn handle_connection(mut stream: TcpStream){
     let buf_reader =BufReader::new(&stream);//create a new BufReader instance that wraps a reference to the stream
